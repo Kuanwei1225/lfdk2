@@ -37,168 +37,174 @@ int input = 0;
 unsigned int counter = 0;
 int ibuf;
 char wbuf;
-int func = PCI_DEVICE_FUNC;
+int func = IO_SPACE_FUNC;
 int maxpcibus = 255;
 char pciname[LFDK_MAX_PATH];
 char enter_mem = 0;
 
 void PrintBaseScreen(void);
 
-static void usage(void)
-{
-
-    fprintf(stderr, "\n" LFDK_VERTEXT "\n");
-    fprintf(stderr, "Copyright (C) 2006 - 2010, Merck Hung <merckhung@gmail.com>\n");
-    fprintf(stderr, "Usage: " LFDK_PROGNAME " [-h] [-d /dev/lfdd] [-n ./pci.ids] [-b 255]\n");
-    fprintf(stderr, "\t-n\tFilename of PCI Name Database, default is /usr/share/misc/pci.ids\n");
-    fprintf(stderr, "\t-d\tDevice name of Linux Firmware Debug Driver, default is /dev/lfdd\n");
-    fprintf(stderr, "\t-b\tMaximum PCI Bus number to scan, default is 255\n");
-    fprintf(stderr, "\t-h\tprint this message.\n");
-    fprintf(stderr, "\n");
+static void usage(void) {
+	fprintf(stderr, "\n" LFDK_VERTEXT "\n");
+	fprintf(stderr,
+			"Copyright (C) 2006 - 2010, Merck Hung <merckhung@gmail.com>\n");
+	fprintf(stderr, "Usage: " LFDK_PROGNAME
+			" [-h] [-d /dev/lfdd] [-n ./pci.ids] [-b 255]\n");
+	fprintf(stderr,
+			"\t-n\tFilename of PCI Name Database, default is "
+			"/usr/share/misc/pci.ids\n");
+	fprintf(stderr,
+			"\t-d\tDevice name of Linux Firmware Debug Driver, default is "
+			"/dev/lfdd\n");
+	fprintf(stderr, "\t-b\tMaximum PCI Bus number to scan, default is 255\n");
+	fprintf(stderr, "\t-h\tprint this message.\n");
+	fprintf(stderr, "\n");
 }
 
-void InitColorPairs(void)
-{
-
-    init_pair(WHITE_RED, COLOR_WHITE, COLOR_RED);
-    init_pair(WHITE_BLUE, COLOR_WHITE, COLOR_BLUE);
-    init_pair(BLACK_WHITE, COLOR_BLACK, COLOR_WHITE);
-    init_pair(CYAN_BLUE, COLOR_CYAN, COLOR_BLUE);
-    init_pair(RED_BLUE, COLOR_RED, COLOR_BLUE);
-    init_pair(YELLOW_BLUE, COLOR_YELLOW, COLOR_BLUE);
-    init_pair(BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
-    init_pair(BLACK_YELLOW, COLOR_BLACK, COLOR_YELLOW);
-    init_pair(YELLOW_RED, COLOR_YELLOW, COLOR_RED);
-    init_pair(YELLOW_BLACK, COLOR_YELLOW, COLOR_BLACK);
-    init_pair(WHITE_YELLOW, COLOR_WHITE, COLOR_YELLOW);
+void InitColorPairs(void) {
+	init_pair(WHITE_RED, COLOR_WHITE, COLOR_RED);
+	init_pair(WHITE_BLUE, COLOR_WHITE, COLOR_BLUE);
+	init_pair(BLACK_WHITE, COLOR_BLACK, COLOR_WHITE);
+	init_pair(CYAN_BLUE, COLOR_CYAN, COLOR_BLUE);
+	init_pair(RED_BLUE, COLOR_RED, COLOR_BLUE);
+	init_pair(YELLOW_BLUE, COLOR_YELLOW, COLOR_BLUE);
+	init_pair(BLACK_GREEN, COLOR_BLACK, COLOR_GREEN);
+	init_pair(BLACK_YELLOW, COLOR_BLACK, COLOR_YELLOW);
+	init_pair(YELLOW_RED, COLOR_YELLOW, COLOR_RED);
+	init_pair(YELLOW_BLACK, COLOR_YELLOW, COLOR_BLACK);
+	init_pair(WHITE_YELLOW, COLOR_WHITE, COLOR_YELLOW);
 }
 
-void PrintBaseScreen(void)
-{
+void PrintBaseScreen(void) {
+	//
+	// Background Color
+	//
+	PrintWin(BaseScreen, bg, 23, 80, 0, 0, WHITE_BLUE, "");
 
-    //
-    // Background Color
-    //
-    PrintWin(BaseScreen, bg, 23, 80, 0, 0, WHITE_BLUE, "");
+	//
+	// Base Screen
+	//
+	PrintWin(BaseScreen, logo, 1, 80, 0, 0, WHITE_RED,
+			"Linux Firmware Debug Kit " LFDK_VERSION);
+	PrintWin(BaseScreen, copyright, 1, 32, 0, 48, WHITE_RED,
+			"Merck Hung <merckhung@gmail.com>");
+	PrintWin(BaseScreen, help, 1, 80, 23, 0, BLACK_WHITE,
+			"(Q)uit (F1)IO (F2)SIO (F3)Mem ");
 
-    //
-    // Base Screen
-    //
-    PrintWin(BaseScreen, logo, 1, 80, 0, 0, WHITE_RED, "Linux Firmware Debug Kit " LFDK_VERSION);
-    PrintWin(BaseScreen, copyright, 1, 32, 0, 48, WHITE_RED, "Merck Hung <merckhung@gmail.com>");
-    PrintWin(BaseScreen, help, 1, 80, 23, 0, BLACK_WHITE, "(Q)uit (P)CI (M)emory (I)O CM(O)S");
-
-    update_panels();
-    doupdate();
+	update_panels();
+	doupdate();
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
+	char c, device[LFDK_MAX_PATH];
+	int i, fd, orig_fl, ret;
 
-    char c, device[LFDK_MAX_PATH];
-    int i, fd, orig_fl, ret;
+	struct tm* nowtime;
+	time_t timer;
+	int last_sec;
 
-    struct tm* nowtime;
-    time_t timer;
-    int last_sec;
+	//
+	// Ncurse start
+	//
+	initscr();
+	start_color();
+	cbreak();
+	noecho();
+	nodelay(stdscr, 1);
+	keypad(stdscr, 1);
+	curs_set(0);
 
-    //
-    // Ncurse start
-    //
-    initscr();
-    start_color();
-    cbreak();
-    noecho();
-    nodelay(stdscr, 1);
-    keypad(stdscr, 1);
-    curs_set(0);
+	//
+	// Initialize color pairs for later use
+	//
+	InitColorPairs();
 
-    //
-    // Initialize color pairs for later use
-    //
-    InitColorPairs();
+	//
+	// Prepare Base Screen
+	//
+	PrintBaseScreen();
 
-    //
-    // Prepare Base Screen
-    //
-    PrintBaseScreen();
+	if (ioperm(0, LFDK_MASSBUF_SIZE, 1)) {
+		printf("IO permission failed.\n");
+		exit(EXIT_FAILURE);
+	}
+	for (;;) {
+		ibuf = getch();
+		if ((ibuf == 'q') || (ibuf == 'Q') || (ibuf == 27)) {
+			//
+			// Exit when ESC and Q pressed
+			//
+			break;
+		}
 
-    if (ioperm(0, LFDK_MASSBUF_SIZE, 1)) {
-        printf("IO permission failed.\n");
-        exit(EXIT_FAILURE);
-    }
-    for (;;) {
+		//
+		// Major function switch key binding
+		//
+		if (ibuf == KEY_F(1)) {
+			enter_mem = 1;
+			func = IO_SPACE_FUNC;
+			ClearMemScreen();
+			ClearSIOScreen();
+			continue;
+		} else if (ibuf == KEY_F(2)) {
+			enter_mem = 1;
+			func = SIO_SPACE_FUNC;
+			ClearIOScreen();
+			ClearMemScreen();
+			continue;
+		} else if (ibuf == KEY_F(3)) {
+			enter_mem = 1;
+			func = MEM_SPACE_FUNC;
+			ClearIOScreen();
+			ClearSIOScreen();
+			continue;
+		}
+		//
+		// Update timer
+		//
+		time(&timer);
+		nowtime = localtime(&timer);
+		last_sec = nowtime->tm_sec;
 
-        ibuf = getch();
-        if ((ibuf == 'q') || (ibuf == 'Q') || (ibuf == 27)) {
-            //
-            // Exit when ESC and Q pressed
-            //
-            break;
-        }
+		// Skip redundant update of timer
+		if (last_sec == nowtime->tm_sec) {
+			PrintFixedWin(BaseScreen, time, 1, 8, 23, 71, BLACK_WHITE,
+					"%2.2d:%2.2d:%2.2d", nowtime->tm_hour,
+					nowtime->tm_min, nowtime->tm_sec);
+		}
 
-        //
-        // Major function switch key binding
-        //
-        if (ibuf == KEY_F(1)) {
+		//
+		// Major Functions
+		//
+		switch (func) {
 
-            enter_mem = 1;
-            func = MEM_SPACE_FUNC;
-            ClearIOScreen();
-            continue;
-        } else if (ibuf == KEY_F(2)) {
+			case IO_SPACE_FUNC:
+				PrintIOScreen(fd);
+				break;
+			case SIO_SPACE_FUNC:
+				PrintSIOScreen();
+				break;
+			case MEM_SPACE_FUNC:
+				PrintMemScreen(fd);
+				break;
+			default:
+				break;
+		}
 
-            enter_mem = 1;
-            func = IO_SPACE_FUNC;
-            ClearMemScreen();
-            continue;
-        } 
-        //
-        // Update timer
-        //
-        time(&timer);
-        nowtime = localtime(&timer);
-        last_sec = nowtime->tm_sec;
+		//
+		// Refresh Screen
+		//
+		update_panels();
+		doupdate();
 
-        // Skip redundant update of timer
-        if (last_sec == nowtime->tm_sec) {
+		usleep(100000); // 100 ms
+	}
 
-            PrintFixedWin(BaseScreen, time, 1, 8, 23, 71, BLACK_WHITE, "%2.2d:%2.2d:%2.2d", nowtime->tm_hour, nowtime->tm_min, nowtime->tm_sec);
-        }
+	endwin();
+	close(fd);
 
-        //
-        // Major Functions
-        //
-        switch (func) {
+	fprintf(stderr, "\n");
+	usage();
 
-        case MEM_SPACE_FUNC:
-
-            PrintMemScreen(fd);
-            break;
-
-        case IO_SPACE_FUNC:
-
-            PrintIOScreen(fd);
-            break;
-
-        default:
-            break;
-        }
-
-        //
-        // Refresh Screen
-        //
-        update_panels();
-        doupdate();
-
-        usleep(1000);
-    }
-
-    endwin();
-    close(fd);
-
-    fprintf(stderr, "\n");
-    usage();
-
-    return 0;
+	return 0;
 }

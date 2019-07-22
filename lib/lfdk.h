@@ -92,6 +92,7 @@ enum {
     PCI_LIST_FUNC,
     MEM_SPACE_FUNC,
     IO_SPACE_FUNC,
+    SIO_SPACE_FUNC,
     CMOS_SPACE_FUNC,
     I2C_SPACE_FUNC,
 };
@@ -109,6 +110,12 @@ enum {
     YELLOW_RED,
     YELLOW_BLACK,
     WHITE_YELLOW
+};
+
+enum {
+	SHOW_DATA = 0,
+	PARAM_1ST,
+	PARAM_2ND
 };
 
 typedef struct {
@@ -201,5 +208,7 @@ struct lfdk_io_t {
 
 void PrintMemScreen(int fd);
 void PrintIOScreen(int fd);
+void PrintSIOScreen(void);
 void ClearMemScreen(void);
 void ClearIOScreen(void);
+void ClearSIOScreen(void);

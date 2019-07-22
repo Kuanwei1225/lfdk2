@@ -29,7 +29,7 @@
 #include "lfdk.h"
 
 MemPanel MemScreen;
-struct lfdk_mem_t lfdd_mem_data;
+struct lfdk_mem_t lfdk_mem_data;
 
 extern int x, y;
 extern int input;
@@ -43,8 +43,8 @@ unsigned int phyaddr = 0;
 void WriteMemByteValue(fd)
 {
 
-    lfdd_mem_data.addr = phyaddr + x * LFDK_BYTE_PER_LINE + y;
-    lfdd_mem_data.buf = wbuf;
+    lfdk_mem_data.addr = phyaddr + x * LFDK_BYTE_PER_LINE + y;
+    lfdk_mem_data.buf = wbuf;
     // write mem here
 }
 
@@ -222,10 +222,10 @@ void PrintMemScreen(int fd)
     //
     if (enter_mem) {
 
-        memset(lfdd_mem_data.mass_buf, 0xff, LFDK_MASSBUF_SIZE);
+        memset(lfdk_mem_data.mass_buf, 0xff, LFDK_MASSBUF_SIZE);
     } else {
 
-        lfdd_mem_data.addr = phyaddr;
+        lfdk_mem_data.addr = phyaddr;
         // read mem here
     }
 
@@ -247,7 +247,7 @@ void PrintMemScreen(int fd)
 
         for (j = 0; j < LFDK_BYTE_PER_LINE; j++) {
 
-            tmp = ((unsigned char)lfdd_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
+            tmp = ((unsigned char)lfdk_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
             if ((tmp >= '!') && (tmp <= '~')) {
 
                 wprintw(MemScreen.ascii, "%c", tmp);
@@ -296,7 +296,7 @@ void PrintMemScreen(int fd)
 
                     wattrset(MemScreen.value, COLOR_PAIR(BLACK_YELLOW) | A_BOLD);
                 }
-            } else if (((unsigned char)lfdd_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j])) {
+            } else if (((unsigned char)lfdk_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j])) {
 
                 wattrset(MemScreen.value, COLOR_PAIR(YELLOW_BLUE) | A_BOLD);
             } else {
@@ -314,11 +314,11 @@ void PrintMemScreen(int fd)
                     wprintw(MemScreen.value, "%2.2X", (unsigned char)wbuf);
                 } else {
 
-                    wprintw(MemScreen.value, "%2.2X", (unsigned char)lfdd_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
+                    wprintw(MemScreen.value, "%2.2X", (unsigned char)lfdk_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
                 }
             } else {
 
-                wprintw(MemScreen.value, "%2.2X", (unsigned char)lfdd_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
+                wprintw(MemScreen.value, "%2.2X", (unsigned char)lfdk_mem_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
             }
 
             //

@@ -16,7 +16,7 @@ STRIP				=   $(CROSS_COMPILE)strip
 CFLAGS				=
 LDFLAGS				=   -lpanel -lncurses -O3
 OBJS				=   lfdk
-LIBS				=	lib/libio.c lib/libmem.c
+LIBS				=	lib/libio.c lib/libsio.c lib/libmem.c
 OUTPUT_PATH=bin
 
 
@@ -25,7 +25,7 @@ ifeq "$(wildcard $(OUTPUT_PATH))" ""
 	mkdir $(OUTPUT_PATH)
 endif
 	$(CC) $(CFLAGS) -o $(OBJS) $(OBJS).c $(LIBS) $(LDFLAGS)
-	mv -f lib/lfdk bin
+	mv -f lfdk bin
 
 clean:
 	$(MAKE) -C lfdk clean
