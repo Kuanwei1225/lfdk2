@@ -93,6 +93,7 @@ enum {
     MEM_SPACE_FUNC,
     IO_SPACE_FUNC,
     SIO_SPACE_FUNC,
+    CMD_SPACE_FUNC,
     CMOS_SPACE_FUNC,
     I2C_SPACE_FUNC,
 };
@@ -207,8 +208,10 @@ struct lfdk_io_t {
 };
 
 void PrintMemScreen(int fd);
-void PrintIOScreen(int fd);
+void PrintIOScreen(void);
 void PrintSIOScreen(void);
+void PrintCMDScreen(void);
 void ClearMemScreen(void);
 void ClearIOScreen(void);
 void ClearSIOScreen(void);
+void ClearCMDScreen(void);

@@ -16,7 +16,7 @@ STRIP				=   $(CROSS_COMPILE)strip
 CFLAGS				=
 LDFLAGS				=   -lpanel -lncurses -O3
 OBJS				=   lfdk
-LIBS				=	lib/libio.c lib/libsio.c lib/libmem.c
+LIBS				=	lib/libio.c lib/libsio.c lib/libcmd.c lib/libmem.c
 OUTPUT_PATH=bin
 
 

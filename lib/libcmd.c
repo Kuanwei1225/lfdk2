@@ -28,7 +28,7 @@
 
 #include "lfdk.h"
 
-MemPanel IOScreen;
+MemPanel CMDScreen;
 struct lfdk_io_t lfdk_io_data;
 
 extern int x, y;
@@ -38,7 +38,7 @@ extern int ibuf;
 extern char wbuf;
 extern char enter_mem;
 
-unsigned int ioaddr = 0;
+static unsigned int ioaddr = 0;
 
 static void WriteIOByteValue(void) {
 	lfdk_io_data.addr = ioaddr + x * LFDK_BYTE_PER_LINE + y;
@@ -47,20 +47,20 @@ static void WriteIOByteValue(void) {
 	outb(lfdk_io_data.buf, lfdk_io_data.addr);
 }
 
-void ClearIOScreen(void) {
-	DestroyWin(IOScreen, offset);
-	DestroyWin(IOScreen, info);
-	DestroyWin(IOScreen, value);
-	DestroyWin(IOScreen, ascii);
+void ClearCMDScreen(void) {
+	DestroyWin(CMDScreen, offset);
+	DestroyWin(CMDScreen, info);
+	DestroyWin(CMDScreen, value);
+	DestroyWin(CMDScreen, ascii);
 }
 
-void PrintIOScreen() {
+void PrintCMDScreen(void) {
 	int i, j;
 	char tmp;
 
 	if (enter_mem) {
 		if (ibuf == 0x0a) {
-			if(!ioperm(ioaddr, LFDK_MASSBUF_SIZE, 1)) {
+			if (!ioperm(ioaddr, LFDK_MASSBUF_SIZE, 1)) {
 				enter_mem = 0;
 			}
 			return;
@@ -129,7 +129,7 @@ void PrintIOScreen() {
 	//
 	// Print Offset Text
 	//
-	PrintFixedWin(IOScreen, offset, 17, 52, 4, 1, RED_BLUE,
+	PrintFixedWin(CMDScreen, offset, 17, 52, 4, 1, RED_BLUE,
 			"0000 00 01 02 03 04 05 06 07 08 09 0A 0B 0C 0D 0E "
 			"0F0000\n0010\n0020\n0030\n0040\n0050\n0060\n0070\n0080\n0090"
 			"\n00A0\n00B0\n00C0\n00D0\n00E0\n00F0");
@@ -137,32 +137,32 @@ void PrintIOScreen() {
 	//
 	// Print memory address
 	//
-	if (!IOScreen.info) {
-		IOScreen.info = newwin(1, 47, 22, 0);
-		IOScreen.p_info = new_panel(IOScreen.info);
+	if (!CMDScreen.info) {
+		CMDScreen.info = newwin(1, 47, 22, 0);
+		CMDScreen.p_info = new_panel(CMDScreen.info);
 	}
-	wbkgd(IOScreen.info, COLOR_PAIR(WHITE_BLUE));
-	wattrset(IOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
-	mvwprintw(IOScreen.info, 0, 0, "Type: I/O Space Address:     ");
+	wbkgd(CMDScreen.info, COLOR_PAIR(WHITE_BLUE));
+	wattrset(CMDScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
+	mvwprintw(CMDScreen.info, 0, 0, "Type: I/O Space Address:     ");
 
 	if (enter_mem) {
 		if (counter % 2) {
-			wattrset(IOScreen.info, COLOR_PAIR(YELLOW_RED) | A_BOLD);
+			wattrset(CMDScreen.info, COLOR_PAIR(YELLOW_RED) | A_BOLD);
 		} else {
-			wattrset(IOScreen.info, COLOR_PAIR(YELLOW_BLACK) | A_BOLD);
+			wattrset(CMDScreen.info, COLOR_PAIR(YELLOW_BLACK) | A_BOLD);
 		}
 
-		wprintw(IOScreen.info, "%4.4X", ioaddr);
+		wprintw(CMDScreen.info, "%4.4X", ioaddr);
 
 		counter++;
 	} else {
-		wattrset(IOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
-		wprintw(IOScreen.info, "%4.4X", ioaddr);
+		wattrset(CMDScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
+		wprintw(CMDScreen.info, "%4.4X", ioaddr);
 	}
 
-	wattrset(IOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
-	wprintw(IOScreen.info, "h");
-	wattrset(IOScreen.info, A_NORMAL);
+	wattrset(CMDScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
+	wprintw(CMDScreen.info, "h");
+	wattrset(CMDScreen.info, A_NORMAL);
 
 	//
 	// Read memory space 256 bytes
@@ -180,40 +180,40 @@ void PrintIOScreen() {
 	//
 	// Print ASCII content
 	//
-	if (!IOScreen.ascii) {
-		IOScreen.ascii = newwin(17, 16, 4, 58);
-		IOScreen.p_ascii = new_panel(IOScreen.ascii);
+	if (!CMDScreen.ascii) {
+		CMDScreen.ascii = newwin(17, 16, 4, 58);
+		CMDScreen.p_ascii = new_panel(CMDScreen.ascii);
 	}
 
-	wbkgd(IOScreen.ascii, COLOR_PAIR(CYAN_BLUE));
-	wattrset(IOScreen.ascii, COLOR_PAIR(CYAN_BLUE) | A_BOLD);
-	mvwprintw(IOScreen.ascii, 0, 0, "");
+	wbkgd(CMDScreen.ascii, COLOR_PAIR(CYAN_BLUE));
+	wattrset(CMDScreen.ascii, COLOR_PAIR(CYAN_BLUE) | A_BOLD);
+	mvwprintw(CMDScreen.ascii, 0, 0, "");
 
-	wprintw(IOScreen.ascii, "0123456789ABCDEF");
+	wprintw(CMDScreen.ascii, "0123456789ABCDEF");
 	for (i = 0; i < LFDK_BYTE_PER_LINE; i++) {
 		for (j = 0; j < LFDK_BYTE_PER_LINE; j++) {
 			tmp = ((unsigned char)
 					lfdk_io_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
 			if ((tmp >= '!') && (tmp <= '~')) {
-				wprintw(IOScreen.ascii, "%c", tmp);
+				wprintw(CMDScreen.ascii, "%c", tmp);
 			} else {
-				wprintw(IOScreen.ascii, ".");
+				wprintw(CMDScreen.ascii, ".");
 			}
 		}
 	}
 
-	wattrset(IOScreen.ascii, A_NORMAL);
+	wattrset(CMDScreen.ascii, A_NORMAL);
 
 	//
 	// Print 256bytes content
 	//
-	if (!IOScreen.value) {
-		IOScreen.value = newwin(17, 47, 5, 6);
-		IOScreen.p_value = new_panel(IOScreen.value);
+	if (!CMDScreen.value) {
+		CMDScreen.value = newwin(17, 47, 5, 6);
+		CMDScreen.p_value = new_panel(CMDScreen.value);
 	}
 
-	wbkgd(IOScreen.value, COLOR_PAIR(WHITE_BLUE));
-	mvwprintw(IOScreen.value, 0, 0, "");
+	wbkgd(CMDScreen.value, COLOR_PAIR(WHITE_BLUE));
+	mvwprintw(CMDScreen.value, 0, 0, "");
 
 	for (i = 0; i < LFDK_BYTE_PER_LINE; i++) {
 		for (j = 0; j < LFDK_BYTE_PER_LINE; j++) {
@@ -223,22 +223,23 @@ void PrintIOScreen() {
 			if (y == j && x == i) {
 				if (input) {
 					if (counter % 2) {
-						wattrset(IOScreen.value,
+						wattrset(CMDScreen.value,
 								COLOR_PAIR(YELLOW_RED) | A_BOLD);
 					} else {
-						wattrset(IOScreen.value,
+						wattrset(CMDScreen.value,
 								COLOR_PAIR(YELLOW_BLACK) | A_BOLD);
 					}
 
 					counter++;
 				} else {
-					wattrset(IOScreen.value, COLOR_PAIR(BLACK_YELLOW) | A_BOLD);
+					wattrset(CMDScreen.value,
+							COLOR_PAIR(BLACK_YELLOW) | A_BOLD);
 				}
 			} else if (((unsigned char)lfdk_io_data
 						.mass_buf[(i * LFDK_BYTE_PER_LINE) + j])) {
-				wattrset(IOScreen.value, COLOR_PAIR(YELLOW_BLUE) | A_BOLD);
+				wattrset(CMDScreen.value, COLOR_PAIR(YELLOW_BLUE) | A_BOLD);
 			} else {
-				wattrset(IOScreen.value, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
+				wattrset(CMDScreen.value, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
 			}
 
 			//
@@ -246,14 +247,14 @@ void PrintIOScreen() {
 			//
 			if (y == j && x == i) {
 				if (input) {
-					wprintw(IOScreen.value, "%2.2X", (unsigned char)wbuf);
+					wprintw(CMDScreen.value, "%2.2X", (unsigned char)wbuf);
 				} else {
-					wprintw(IOScreen.value, "%2.2X",
+					wprintw(CMDScreen.value, "%2.2X",
 							(unsigned char)lfdk_io_data
 							.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
 				}
 			} else {
-				wprintw(IOScreen.value, "%2.2X",
+				wprintw(CMDScreen.value, "%2.2X",
 						(unsigned char)lfdk_io_data
 						.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
 			}
@@ -261,13 +262,13 @@ void PrintIOScreen() {
 			//
 			// End of color pair
 			//
-			wattrset(IOScreen.value, A_NORMAL);
+			wattrset(CMDScreen.value, A_NORMAL);
 
 			//
 			// Move to next byte
 			//
 			if (j != 15) {
-				wprintw(IOScreen.value, " ");
+				wprintw(CMDScreen.value, " ");
 			}
 		}
 	}

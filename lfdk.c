@@ -145,17 +145,27 @@ int main(int argc, char** argv) {
 			func = IO_SPACE_FUNC;
 			ClearMemScreen();
 			ClearSIOScreen();
+			ClearCMDScreen();
 			continue;
 		} else if (ibuf == KEY_F(2)) {
 			enter_mem = 1;
 			func = SIO_SPACE_FUNC;
 			ClearIOScreen();
 			ClearMemScreen();
+			ClearCMDScreen();
 			continue;
 		} else if (ibuf == KEY_F(3)) {
 			enter_mem = 1;
 			func = MEM_SPACE_FUNC;
 			ClearIOScreen();
+			ClearSIOScreen();
+			ClearCMDScreen();
+			continue;
+		} else if (ibuf == KEY_F(8)) {
+			enter_mem = 1;
+			func = CMD_SPACE_FUNC;
+			ClearIOScreen();
+			ClearMemScreen();
 			ClearSIOScreen();
 			continue;
 		}
@@ -179,13 +189,16 @@ int main(int argc, char** argv) {
 		switch (func) {
 
 			case IO_SPACE_FUNC:
-				PrintIOScreen(fd);
+				PrintIOScreen();
 				break;
 			case SIO_SPACE_FUNC:
 				PrintSIOScreen();
 				break;
 			case MEM_SPACE_FUNC:
 				PrintMemScreen(fd);
+				break;
+			case CMD_SPACE_FUNC:
+				PrintCMDScreen();
 				break;
 			default:
 				break;

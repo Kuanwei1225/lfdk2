@@ -80,9 +80,6 @@ void ClearSIOScreen(void) {
 }
 
 void PrintSIOScreen(void) {
-	int i, j;
-	char tmp;
-
 	if (enter_mem != SHOW_DATA) {
 		if (ibuf == 0x0a) {
 			switch (enter_mem) {
@@ -90,19 +87,15 @@ void PrintSIOScreen(void) {
 					enter_mem = PARAM_2ND;
 					return;
 				case PARAM_2ND:
-					enter_mem = SHOW_DATA;
-					int ret;
-					if(sioaddr_index > sioaddr_data) {
-						ret = ioperm(sioaddr_index, 
-								sioaddr_index - sioaddr_data + 1, 1);
-					} else {
-						ret = ioperm(sioaddr_data , 
-								sioaddr_data - sioaddr_index + 1, 1);
-					}
-					if(ret){
+					if(ioperm(sioaddr_index - 1, 2, 1)) {
 						printf("IO permission failed.\n");
-						exit(EXIT_FAILURE);
+						return;
 					}
+					if(ioperm(sioaddr_data - 1, 2, 1)) {
+						printf("IO permission failed.\n");
+						return;
+					}
+					enter_mem = SHOW_DATA;
 					return;
 			}
 		} else if (((ibuf >= '0') && (ibuf <= '9')) ||
@@ -116,7 +109,7 @@ void PrintSIOScreen(void) {
 				tmp = &sioaddr_data;
 			}
 			*tmp <<= 4;
-			*tmp &= 0xff;
+			*tmp &= 0xffff;
 			if (ibuf <= '9') {
 				*tmp |= (unsigned int)(ibuf - 0x30);
 			} else if (ibuf > 'F') {
@@ -187,7 +180,7 @@ void PrintSIOScreen(void) {
 	}
 	wbkgd(SIOScreen.info, COLOR_PAIR(WHITE_BLUE));
 	wattrset(SIOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
-	mvwprintw(SIOScreen.info, 0, 0, "Type: SIO Space Address: Index= ");
+	mvwprintw(SIOScreen.info, 0, 0, "Type: SIO Space Address: ");
 
 	if (enter_mem == PARAM_1ST) {
 		if (counter % 2) {
@@ -195,14 +188,14 @@ void PrintSIOScreen(void) {
 		} else {
 			wattrset(SIOScreen.info, COLOR_PAIR(YELLOW_BLACK) | A_BOLD);
 		}
-		wprintw(SIOScreen.info, "%2.2X", sioaddr_index);
+		wprintw(SIOScreen.info, "%4.4X", sioaddr_index);
 		counter++;
 	} else {
 		wattrset(SIOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
-		wprintw(SIOScreen.info, "%2.2X", sioaddr_index);
+		wprintw(SIOScreen.info, "%4.4X", sioaddr_index);
 	}
 	wattrset(SIOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
-	wprintw(SIOScreen.info, "h Data= ");
+	wprintw(SIOScreen.info, "h, ");
 	wattrset(SIOScreen.info, A_NORMAL);
 
 	if (enter_mem == PARAM_2ND) {
@@ -211,11 +204,11 @@ void PrintSIOScreen(void) {
 		} else {
 			wattrset(SIOScreen.info, COLOR_PAIR(YELLOW_BLACK) | A_BOLD);
 		}
-		wprintw(SIOScreen.info, "%2.2X", sioaddr_data);
+		wprintw(SIOScreen.info, "%4.4X", sioaddr_data);
 		counter++;
 	} else {
 		wattrset(SIOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
-		wprintw(SIOScreen.info, "%2.2X", sioaddr_data);
+		wprintw(SIOScreen.info, "%4.4X", sioaddr_data);
 	}
 	wattrset(SIOScreen.info, COLOR_PAIR(WHITE_BLUE) | A_BOLD);
 	wprintw(SIOScreen.info, "h");
@@ -243,7 +236,8 @@ void PrintSIOScreen(void) {
 	mvwprintw(SIOScreen.ascii, 0, 0, "");
 
 	wprintw(SIOScreen.ascii, "0123456789ABCDEF");
-	for (i = 0; i < LFDK_BYTE_PER_LINE; i++) {
+	int i, j;
+	for (unsigned char tmp, i = 0; i < LFDK_BYTE_PER_LINE; i++) {
 		for (j = 0; j < LFDK_BYTE_PER_LINE; j++) {
 			tmp = ((unsigned char)
 					lfdk_sio_data.mass_buf[(i * LFDK_BYTE_PER_LINE) + j]);
