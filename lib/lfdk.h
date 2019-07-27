@@ -206,7 +206,12 @@ struct lfdk_io_t {
     unsigned int buf;
     unsigned char mass_buf[LFDK_MASSBUF_SIZE];
 };
-
+struct cmd_data_t {
+	unsigned int cmd;
+	unsigned short int addr;
+	unsigned char val;
+	struct cmd_data_t *next;
+};
 void PrintMemScreen(int fd);
 void PrintIOScreen(void);
 void PrintSIOScreen(void);

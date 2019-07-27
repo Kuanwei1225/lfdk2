@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
 	}
 	for (;;) {
 		ibuf = getch();
-		if ((ibuf == 'q') || (ibuf == 'Q') || (ibuf == 27)) {
+		if (ibuf == 27) {
 			//
 			// Exit when ESC and Q pressed
 			//
