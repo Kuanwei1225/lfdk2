@@ -16,7 +16,8 @@
  */
 #define LFDK_VERSION "2.0.2"
 #define LFDK_PROGNAME "lfdk"
-#define LFDK_VERTEXT LFDK_PROGNAME " version " LFDK_VERSION ", Linux Firmware Debug Kit"
+#define LFDK_VERTEXT \
+    LFDK_PROGNAME " version " LFDK_VERSION ", Linux Firmware Debug Kit"
 #define LFDK_MAX_PCIBUF 200
 #define LFDK_MAX_PATH 40
 #define LFDK_MAX_PCIBUS 256
@@ -34,20 +35,8 @@
 
 #define LFDK_MASSBUF_SIZE 256
 
-#define LFDD_IOCTL(FDESC, IOCTL_CMD, DATA)                 \
-    {                                                      \
-                                                           \
-        if (ioctl(FDESC, IOCTL_CMD, &DATA)) {              \
-                                                           \
-            endwin();                                      \
-            fprintf(stderr, "Cannot execute command\n\n"); \
-            exit(1);                                       \
-        }                                                  \
-    }
-
 #define PrintWin(RESRC, NAME, LINE, COLUMN, X, Y, COLORPAIR, FORMAT, ARGS...) \
     {                                                                         \
-                                                                              \
         RESRC.NAME = newwin(LINE, COLUMN, X, Y);                              \
         RESRC.p_##NAME = new_panel(RESRC.NAME);                               \
         wbkgd(RESRC.NAME, COLOR_PAIR(COLORPAIR));                             \
@@ -56,35 +45,45 @@
         wattrset(RESRC.NAME, A_NORMAL);                                       \
     }
 
-#define PrintFixedWin(RESRC, NAME, LINE, COLUMN, X, Y, COLORPAIR, FORMAT, ARGS...) \
-    {                                                                              \
-                                                                                   \
-        if (!RESRC.NAME) {                                                         \
-                                                                                   \
-            RESRC.NAME = newwin(LINE, COLUMN, X, Y);                               \
-            RESRC.p_##NAME = new_panel(RESRC.NAME);                                \
-        }                                                                          \
-        wbkgd(RESRC.NAME, COLOR_PAIR(COLORPAIR));                                  \
-        wattrset(RESRC.NAME, COLOR_PAIR(COLORPAIR) | A_BOLD);                      \
-        mvwprintw(RESRC.NAME, 0, 0, FORMAT, ##ARGS);                               \
-        wattrset(RESRC.NAME, A_NORMAL);                                            \
+#define PrintFixedWin(RESRC, NAME, LINE, COLUMN, X, Y, COLORPAIR, FORMAT, \
+    ARGS...)                                                              \
+    {                                                                     \
+        if (!RESRC.NAME) {                                                \
+            RESRC.NAME = newwin(LINE, COLUMN, X, Y);                      \
+            RESRC.p_##NAME = new_panel(RESRC.NAME);                       \
+        }                                                                 \
+        wbkgd(RESRC.NAME, COLOR_PAIR(COLORPAIR));                         \
+        wattrset(RESRC.NAME, COLOR_PAIR(COLORPAIR) | A_BOLD);             \
+        mvwprintw(RESRC.NAME, 0, 0, FORMAT, ##ARGS);                      \
+        wattrset(RESRC.NAME, A_NORMAL);                                   \
     }
 
 #define DestroyWin(RESRC, NAME)        \
     {                                  \
-                                       \
         if (RESRC.p_##NAME) {          \
-                                       \
             del_panel(RESRC.p_##NAME); \
             RESRC.p_##NAME = NULL;     \
         }                              \
                                        \
         if (RESRC.NAME) {              \
-                                       \
             delwin(RESRC.NAME);        \
             RESRC.NAME = NULL;         \
         }                              \
     }
+
+#define set_cmd_data(data, str)                          \
+    do {                                                 \
+        for (; *str != '\0'; str++) {                    \
+            (data) <<= 4;                                \
+            if (*(str) >= '0' && *(str) <= '9') {        \
+                (data) |= *(str) - '0';                  \
+            } else if (*(str) >= 'a' && *(str) <= 'f') { \
+                (data) |= *(str) - 'a';                  \
+            } else if (*(str) >= 'A' && *(str) <= 'F') { \
+                (data) |= *(str) - 'A';                  \
+            }                                            \
+        }                                                \
+    } while (0)
 
 enum {
 
@@ -113,14 +112,11 @@ enum {
     WHITE_YELLOW
 };
 
-enum {
-	SHOW_DATA = 0,
-	PARAM_1ST,
-	PARAM_2ND
-};
+enum { SHOW_DATA = 0,
+    PARAM_1ST,
+    PARAM_2ND };
 
 typedef struct {
-
     PANEL* p_bg;
     PANEL* p_logo;
     PANEL* p_copyright;
@@ -136,7 +132,6 @@ typedef struct {
 } BasePanel;
 
 typedef struct {
-
     PANEL* p_ven;
     PANEL* p_dev;
     PANEL* p_offset;
@@ -154,7 +149,6 @@ typedef struct {
 } PCIPanel;
 
 typedef struct {
-
     PANEL* p_title;
     PANEL* p_devname;
     PANEL* p_vendev;
@@ -170,7 +164,6 @@ typedef struct {
 } PCILPanel;
 
 typedef struct {
-
     PANEL* p_offset;
     PANEL* p_info;
     PANEL* p_value;
@@ -184,7 +177,6 @@ typedef struct {
 } MemPanel;
 
 typedef struct {
-
     unsigned short int venid;
     unsigned short int devid;
     unsigned char bus;
@@ -207,10 +199,10 @@ struct lfdk_io_t {
     unsigned char mass_buf[LFDK_MASSBUF_SIZE];
 };
 struct cmd_data_t {
-	unsigned int cmd;
-	unsigned short int addr;
-	unsigned char val;
-	struct cmd_data_t *next;
+    unsigned int cmd;
+    unsigned short int addr;
+    unsigned char val;
+    struct cmd_data_t* next;
 };
 void PrintMemScreen(int fd);
 void PrintIOScreen(void);
@@ -220,3 +212,4 @@ void ClearMemScreen(void);
 void ClearIOScreen(void);
 void ClearSIOScreen(void);
 void ClearCMDScreen(void);
+
