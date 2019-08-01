@@ -14,7 +14,7 @@ STRINGS				=   $(CROSS_COMPILE)strings
 STRIP				=   $(CROSS_COMPILE)strip
 
 CFLAGS				=
-LDFLAGS				=   -lpanel -lncurses -O3
+LDFLAGS				=   -lpanel -lncurses -O0 -g
 OBJS				=   lfdk
 LIBS				=	lib/libio.c lib/libsio.c lib/libcmd.c lib/libmem.c
 OUTPUT_PATH=bin

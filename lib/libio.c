@@ -52,6 +52,7 @@ void ClearIOScreen(void) {
 	DestroyWin(IOScreen, info);
 	DestroyWin(IOScreen, value);
 	DestroyWin(IOScreen, ascii);
+	ioperm(ioaddr, LFDK_MASSBUF_SIZE, 0);
 }
 
 void PrintIOScreen() {
