@@ -78,9 +78,10 @@
             if (*(str) >= '0' && *(str) <= '9') {        \
                 (data) |= *(str) - '0';                  \
             } else if (*(str) >= 'a' && *(str) <= 'f') { \
-                (data) |= *(str) - 'a';                  \
-            } else if (*(str) >= 'A' && *(str) <= 'F') { \
-                (data) |= *(str) - 'A';                  \
+                (data) |= *(str) - 'a' + 10;             \
+            } else {                                     \
+                data = 0;                                \
+                break;                                   \
             }                                            \
         }                                                \
     } while (0)
@@ -199,7 +200,7 @@ struct lfdk_io_t {
     unsigned char mass_buf[LFDK_MASSBUF_SIZE];
 };
 struct cmd_data_t {
-    unsigned int cmd;
+    char cmd;
     unsigned short int addr;
     unsigned char val;
     struct cmd_data_t* next;

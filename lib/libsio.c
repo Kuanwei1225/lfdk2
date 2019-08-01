@@ -37,6 +37,7 @@ extern unsigned int counter;
 extern int ibuf;
 extern char wbuf;
 extern char enter_mem;
+extern struct cmd_data_t *cmd_data;
 
 static unsigned int sioaddr_index = 0;
 static unsigned int sioaddr_data = 0;
@@ -51,11 +52,20 @@ static inline void sio_outb(int addr_index, int addr_data,int index, int val)
 	outb(index, addr_index);
 	outb(val, addr_data);
 }
-static void sio_command(void) 
+void sio_command(void) 
 {
 	// do command
-	outb(0x87, 0x2e);
-	outb(0x87, 0x2e);
+	if(cmd_data == NULL) {
+		return;
+	}
+	for(struct cmd_data_t *ptr = cmd_data; ptr != NULL; ptr = ptr->next) {
+		switch (ptr->cmd)
+		{
+			case 'o':
+				outb(ptr->val, ptr->addr);
+				break;
+		}
+	}
 }
 static void WriteSIOByteValue(void) 
 {
@@ -68,7 +78,7 @@ static void WriteSIOByteValue(void)
 static void ReadAllSioValue(void)
 {
 	for(int i = 0; i < LFDK_MASSBUF_SIZE; i++) {
-//		sio_command();
+		sio_command();
 		lfdk_sio_data.mass_buf[i] = sio_inb(sioaddr_index, sioaddr_data, i);
 	}
 }
@@ -77,6 +87,8 @@ void ClearSIOScreen(void) {
 	DestroyWin(SIOScreen, info);
 	DestroyWin(SIOScreen, value);
 	DestroyWin(SIOScreen, ascii);
+	ioperm(sioaddr_index, 1, 0);
+	ioperm(sioaddr_data, 1, 0);
 }
 
 void PrintSIOScreen(void) {
@@ -87,11 +99,11 @@ void PrintSIOScreen(void) {
 					enter_mem = PARAM_2ND;
 					return;
 				case PARAM_2ND:
-					if(ioperm(sioaddr_index - 1, 2, 1)) {
+					if(ioperm(sioaddr_index, 1, 1)) {
 						printf("IO permission failed.\n");
 						return;
 					}
-					if(ioperm(sioaddr_data - 1, 2, 1)) {
+					if(ioperm(sioaddr_data, 1, 1)) {
 						printf("IO permission failed.\n");
 						return;
 					}

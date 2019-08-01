@@ -32,11 +32,7 @@
 
 MemPanel CMDScreen;
 
-extern int x, y;
-extern int input;
-extern unsigned int counter;
 extern int ibuf;
-extern char wbuf;
 extern char enter_mem;
 struct cmd_data_t *cmd_data = NULL;
 static unsigned int in_counter = 0;
@@ -93,11 +89,18 @@ struct cmd_data_t* command_parser(char cmd[])
 			if (head == NULL) {
 				return NULL;
 			}
+			if(ioperm(head->addr, 1, 1)){
+				printf("IO permission failed.\n");
+				return NULL;
+			}
 			ptr = head;
 		} else {
 			ptr->next = set_command(pch);
-			if (ptr == NULL) {
+			if (ptr->next == NULL) {
 				return head;
+			}
+			if(ioperm(head->addr, 1, 1)){
+				printf("IO permission failed.\n");
 			}
 			ptr = ptr->next;
 		}
@@ -110,13 +113,14 @@ void free_command(struct cmd_data_t *head)
 {
     struct cmd_data_t *ptr = head;
 
-    if (head == NULL)
-        return;
-    while (ptr != NULL) {
-        ptr = (head)->next;
-        free(head);
-       	head = ptr;
-    }
+	if (head == NULL)
+		return;
+	do { 
+		ptr = head->next;
+		ioperm(head->addr, 1, 0);
+		free(head);
+		head = ptr;
+	} while(ptr != NULL);
 }
 void ClearCMDScreen(void)
 {
@@ -141,8 +145,7 @@ void PrintCMDScreen(void)
         } else if ((ibuf >= 'A' && ibuf <= 'Z') || (ibuf >= 'a' && ibuf <= 'z') || (ibuf >= '0' && ibuf <= '9') || (ibuf == 0x0a) || (ibuf == ' ') || (ibuf == ';')) {
             cmd_string[in_counter] = ibuf;
             in_counter++;
-            cmd_string[in_counter] = '\n';
-            cmd_string[in_counter + 1] = '\0';
+            cmd_string[in_counter] = '\0';
             in_counter %= CMD_STRING_SIZE - 1;
         }
     }
