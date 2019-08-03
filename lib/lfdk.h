@@ -87,7 +87,6 @@
     } while (0)
 
 enum {
-
     PCI_DEVICE_FUNC = 1,
     PCI_LIST_FUNC,
     MEM_SPACE_FUNC,
@@ -99,7 +98,6 @@ enum {
 };
 
 enum {
-
     WHITE_RED = 1,
     WHITE_BLUE,
     BLACK_WHITE,
@@ -205,7 +203,7 @@ struct cmd_data_t {
     unsigned char val;
     struct cmd_data_t* next;
 };
-void PrintMemScreen(int fd);
+void PrintMemScreen(void);
 void PrintIOScreen(void);
 void PrintSIOScreen(void);
 void PrintCMDScreen(void);
