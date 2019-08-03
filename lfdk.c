@@ -89,7 +89,7 @@ void PrintBaseScreen(void) {
 	PrintWin(BaseScreen, copyright, 1, 32, 0, 48, WHITE_RED,
 			"Merck Hung <merckhung@gmail.com>");
 	PrintWin(BaseScreen, help, 1, 80, 23, 0, BLACK_WHITE,
-			"(Q)uit (F1)IO (F2)SIO (F3)Mem ");
+			"(ESC)Quit (F1)IO (F2)SIO (F3)Mem (F8)Cmd");
 
 	update_panels();
 	doupdate();
@@ -136,7 +136,6 @@ int main(int argc, char** argv) {
 			//
 			break;
 		}
-
 		//
 		// Major function switch key binding
 		//
@@ -182,7 +181,6 @@ int main(int argc, char** argv) {
 					"%2.2d:%2.2d:%2.2d", nowtime->tm_hour,
 					nowtime->tm_min, nowtime->tm_sec);
 		}
-
 		//
 		// Major Functions
 		//
@@ -195,7 +193,7 @@ int main(int argc, char** argv) {
 				PrintSIOScreen();
 				break;
 			case MEM_SPACE_FUNC:
-				PrintMemScreen(fd);
+				PrintMemScreen();
 				break;
 			case CMD_SPACE_FUNC:
 				PrintCMDScreen();
@@ -203,7 +201,6 @@ int main(int argc, char** argv) {
 			default:
 				break;
 		}
-
 		//
 		// Refresh Screen
 		//
@@ -212,7 +209,6 @@ int main(int argc, char** argv) {
 
 		usleep(100000); // 100 ms
 	}
-
 	endwin();
 	close(fd);
 
