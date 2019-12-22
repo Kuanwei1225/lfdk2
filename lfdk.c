@@ -96,8 +96,6 @@ void PrintBaseScreen(void) {
 }
 
 int main(int argc, char** argv) {
-	char c, device[LFDK_MAX_PATH];
-	int i, fd, orig_fl, ret;
 
 	struct tm* nowtime;
 	time_t timer;
@@ -210,7 +208,6 @@ int main(int argc, char** argv) {
 		usleep(100000); // 100 ms
 	}
 	endwin();
-	close(fd);
 
 	fprintf(stderr, "\n");
 	usage();

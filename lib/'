@@ -37,7 +37,7 @@ extern int ibuf;
 extern char enter_mem;
 struct cmd_data_t *cmd_data = NULL;
 static unsigned int in_counter = 0;
-static char cmd_string[CMD_STRING_SIZE];
+static unsigned char cmd_string[CMD_STRING_SIZE];
 
 struct cmd_token* new_token(int type, struct cmd_token *cur)
 {
@@ -62,6 +62,8 @@ struct cmd_token* tokenize(char *c)
 		} else if(isdigit(*c)) {
 			cur = new_token(TOKEN_VAL, cur);
 			cur->val = strtol(c, &c, 16);
+		} else {
+			error("Decode failed.");
 		}
 		c++;
 	}
@@ -82,26 +84,17 @@ struct cmd_data_t* command_parser(char cmd[])
 	while(tk->type != TOKEN_EOF && tk->next != NULL) {
 		ptr->next = (struct cmd_data_t*)calloc(1, sizeof(struct cmd_data_t));
 		cur = ptr->next;
-		cur->next = NULL;
+		i>next = NULL;
 		if(tk->type == TOKEN_CMD) {
 			tk = tk->next;
 			if(tk->type == TOKEN_VAL) { // expect address
-				cur->addr = tk->val;
+				ptr->addr = tk->val;
 				tk = tk->next;
-			} else {
-				free(cur);
-				ptr->next = NULL;
-				continue;
 			}
 			if(tk->type == TOKEN_VAL) { // expect value
-				cur->val = tk->val;
+				ptr->val = tk->val;
 				tk = tk->next;
-			} else {
-				free(cur);
-				ptr->next = NULL;
-				continue;
 			}
-			ptr = cur;
 		} else {
 			tk = tk->next;
 		}

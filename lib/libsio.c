@@ -113,7 +113,7 @@ void PrintSIOScreen(void) {
 		} else if (((ibuf >= '0') && (ibuf <= '9')) ||
 				((ibuf >= 'a') && (ibuf <= 'f')) ||
 				((ibuf >= 'A') && (ibuf <= 'F'))) {
-			unsigned int *tmp;
+			unsigned int *tmp = NULL;
 
 			if(enter_mem == PARAM_1ST) {
 				tmp = &sioaddr_index;

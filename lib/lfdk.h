@@ -111,9 +111,17 @@ enum {
     WHITE_YELLOW
 };
 
-enum { SHOW_DATA = 0,
+enum { 
+	SHOW_DATA = 0,
     PARAM_1ST,
-    PARAM_2ND };
+    PARAM_2ND
+};
+
+enum { 
+	TOKEN_CMD = 0,
+	TOKEN_VAL,
+	TOKEN_EOF
+};
 
 typedef struct {
     PANEL* p_bg;
@@ -197,6 +205,13 @@ struct lfdk_io_t {
     unsigned int buf;
     unsigned char mass_buf[LFDK_MASSBUF_SIZE];
 };
+
+struct cmd_token {
+	int type;
+	unsigned int val;
+	struct cmd_token *next;
+};
+
 struct cmd_data_t {
     char cmd;
     unsigned short int addr;
